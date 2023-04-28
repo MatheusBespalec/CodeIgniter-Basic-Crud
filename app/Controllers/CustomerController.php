@@ -6,10 +6,34 @@ use App\Adapters\PagerAdapter;
 use App\Models\CustomerModel;
 use CodeIgniter\API\ResponseTrait;
 use Config\Services;
-use OpenApi\Annotations as OA;
 
 /**
  * @OA\Info(title="Customer Operations", version="1.0.0")
+ * @OA\Schema(
+ *     schema="Customer",
+ *     type="object",
+ *     required={"name", "email", "phone"},
+ *     @OA\Property(
+ *          property="name",
+ *          type="string",
+ *          example="John Doe",
+ *          description="Customer name",
+ *     ),
+ *     @OA\Property(
+ *          property="email",
+ *          type="string",
+ *          uniqueItems=true,
+ *          example="johndoe@example.com",
+ *          description="Customer email address",
+ *     ),
+ *     @OA\Property(
+ *          property="phone",
+ *          type="string",
+ *          uniqueItems=true,
+ *          example="5511954136548",
+ *          description="Customer phone number",
+ *     ),
+ * )
  */
 class CustomerController extends BaseController
 {
@@ -19,6 +43,7 @@ class CustomerController extends BaseController
      * @OA\Get(
      *     path="/customers",
      *     summary="Get all customers",
+     *     tags={"Customers"},
      *     @OA\Response(
      *          response="200",
      *          description="Success"
@@ -38,8 +63,9 @@ class CustomerController extends BaseController
      * @OA\Get(
      *     path="/customers/{customerId}",
      *     summary="Get a customer by ID",
+     *     tags={"Customers"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="customerId",
      *         in="path",
      *         required=true,
      *         description="ID of the customer to get",
@@ -76,6 +102,10 @@ class CustomerController extends BaseController
      * @OA\Post(
      *      path="/customers",
      *      summary="Create new customer",
+     *      tags={"Customers"},
+     *      @OA\RequestBody(
+     *          @OA\JsonContent(ref="#/components/schemas/Customer")
+     *      ),
      *      @OA\Response(
      *          response="201",
      *          description="Customer Created"
@@ -112,6 +142,7 @@ class CustomerController extends BaseController
      * @OA\Put(
      *      path="/customers/{customerId}",
      *      summary="Update existing customer",
+     *      tags={"Customers"},
      *      @OA\Parameter(
      *         name="customerId",
      *         in="path",
@@ -121,6 +152,9 @@ class CustomerController extends BaseController
      *             type="integer",
      *             format="int64"
      *         )
+     *      ),
+     *      @OA\RequestBody(
+     *          @OA\JsonContent(ref="#/components/schemas/Customer")
      *      ),
      *      @OA\Response(
      *          response="200",
@@ -160,7 +194,8 @@ class CustomerController extends BaseController
      * @OA\Delete(
      *      path="/customers/{customerId}",
      *      summary="Delete customer",
-     *     @OA\Parameter(
+     *      tags={"Customers"},
+     *      @OA\Parameter(
      *         name="customerId",
      *         in="path",
      *         required=true,
@@ -169,11 +204,11 @@ class CustomerController extends BaseController
      *             type="integer",
      *             format="int64"
      *         )
-     *     ),
+     *      ),
      *      @OA\Response(
      *          response="204",
      *          description="Success"
-     *     ),
+     *      ),
      *      @OA\Response(
      *          response="404",
      *          description="Customer not found"

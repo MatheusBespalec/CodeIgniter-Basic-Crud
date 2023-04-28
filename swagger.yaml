@@ -5,14 +5,23 @@ info:
 paths:
   /customers:
     get:
+      tags:
+        - Customers
       summary: 'Get all customers'
       operationId: 94eabb9a66b57dc9565cbcdb81d66dd6
       responses:
         '200':
           description: Success
     post:
+      tags:
+        - Customers
       summary: 'Create new customer'
       operationId: e12681ada60534c3a4f9666599eb5887
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
       responses:
         '201':
           description: 'Customer Created'
@@ -22,11 +31,13 @@ paths:
           description: 'Customer creation failed'
   '/customers/{customerId}':
     get:
+      tags:
+        - Customers
       summary: 'Get a customer by ID'
       operationId: bbd18e8e02af7597575794ab70fca80f
       parameters:
         -
-          name: id
+          name: customerId
           in: path
           description: 'ID of the customer to get'
           required: true
@@ -39,6 +50,8 @@ paths:
         '404':
           description: 'Customer not found'
     put:
+      tags:
+        - Customers
       summary: 'Update existing customer'
       operationId: fd9e6d2245eef2cf78272c1140c0305a
       parameters:
@@ -50,6 +63,11 @@ paths:
           schema:
             type: integer
             format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
       responses:
         '200':
           description: Success
@@ -58,6 +76,8 @@ paths:
         '500':
           description: 'Customer update failed'
     delete:
+      tags:
+        - Customers
       summary: 'Delete customer'
       operationId: 1409f3779fdeaa9dda1ae7a38ba7824b
       parameters:
@@ -76,3 +96,26 @@ paths:
           description: 'Customer not found'
         '500':
           description: 'Customer deletion failed'
+components:
+  schemas:
+    Customer:
+      required:
+        - name
+        - email
+        - phone
+      properties:
+        name:
+          description: 'Customer name'
+          type: string
+          example: 'John Doe'
+        email:
+          description: 'Customer email address'
+          type: string
+          uniqueItems: true
+          example: johndoe@example.com
+        phone:
+          description: 'Customer phone number'
+          type: string
+          uniqueItems: true
+          example: '5511954136548'
+      type: object

@@ -11,22 +11,24 @@ class CreateCustomersTable extends Migration
     {
         $this->forge->addField([
             'id' => [
-                'type'              => 'INT',
-                'constraint'        => 5,
-                'unsigned'          => true,
-                'auto_increment'    => true,
+                'type'           => 'INT',
+                'constraint'     => 5,
+                'unsigned'       => true,
+                'auto_increment' => true,
             ],
             'name' => [
-                'type'              => 'VARCHAR',
-                'constraint'        => '100',
+                'type'       => 'VARCHAR',
+                'constraint' => '100',
             ],
             'email' => [
-                'type'              => 'VARCHAR',
-                'constraint'        => '100',
+                'type'       => 'VARCHAR',
+                'constraint' => '50',
+                'unique'     => true,
             ],
             'phone' => [
-                'type'              => 'VARCHAR',
-                'constraint'        => '100',
+                'type'       => 'VARCHAR',
+                'constraint' => '20',
+                'unique'     => true,
             ],
             'created_at' => [
                 'type'    => 'TIMESTAMP',
@@ -37,8 +39,8 @@ class CreateCustomersTable extends Migration
                 'default' => new RawSql('CURRENT_TIMESTAMP'),
             ],
             'deleted_at' => [
-                'type'              => 'DATETIME',
-                'null'              => true,
+                'type' => 'DATETIME',
+                'null' => true,
             ],
         ]);
         $this->forge->addKey('id', true);
