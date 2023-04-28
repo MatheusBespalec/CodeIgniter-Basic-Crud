@@ -41,4 +41,9 @@ class Validation extends BaseConfig
     // --------------------------------------------------------------------
     // Rules
     // --------------------------------------------------------------------
+    public array $createCustomer = [
+        'name'  => ['required', 'min_length[3]', 'max_length[100]'],
+        'email' => ['required', 'valid_email', 'is_unique[customers.email]'],
+        'phone' => ['required', 'integer']
+    ];
 }

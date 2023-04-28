@@ -1,0 +1,14 @@
+version: '3'
+services:
+  db:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ci_crud
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ci_crud_data:/var/lib/mysql
+    ports:
+        - 3306:3306
+volumes:
+  ci_crud_data:
