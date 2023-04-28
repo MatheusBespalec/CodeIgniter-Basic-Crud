@@ -25,6 +25,7 @@ class PagerAdapter implements \JsonSerializable
                 range($this->pager->getFirstPage(), $this->pager->getLastPage())),
             'total' => $this->pager->getPageCount(),
             'current' => $this->pager->getCurrentPage(),
+            'per_page' => $this->pager->getPerPage(),
         ];
     }
 }

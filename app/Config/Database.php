@@ -49,15 +49,15 @@ class Database extends Config
      * running PHPUnit database tests.
      */
     public array $tests = [
-        'DSN'         => '',
-        'hostname'    => '127.0.0.1',
+        'DSN'         => 'sqlite::memory:',
+        'hostname'    => '',
         'username'    => '',
         'password'    => '',
-        'database'    => ':memory:',
-        'DBDriver'    => 'SQLite3',
-        'DBPrefix'    => 'db_',  // Needed to ensure we're working correctly with prefixes live. DO NOT REMOVE FOR CI DEVS
+        'database'    => '',
+        'DBDriver'    => 'pdo',
+        'DBPrefix'    => '',
         'pConnect'    => false,
-        'DBDebug'     => true,
+        'DBDebug'     => (ENVIRONMENT !== 'production'),
         'charset'     => 'utf8',
         'DBCollat'    => 'utf8_general_ci',
         'swapPre'     => '',
@@ -66,7 +66,7 @@ class Database extends Config
         'strictOn'    => false,
         'failover'    => [],
         'port'        => 3306,
-        'foreignKeys' => true,
+        'foreignKeys' => false,
         'busyTimeout' => 1000,
     ];
 
