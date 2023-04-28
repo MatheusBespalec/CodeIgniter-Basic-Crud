@@ -13,7 +13,7 @@ class PagerAdapter implements \JsonSerializable
         $this->pager = $pager;
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return [
             'first' => $this->pager->getPageURI($this->pager->getFirstPage()),

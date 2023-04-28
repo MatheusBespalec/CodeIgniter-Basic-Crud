@@ -174,6 +174,7 @@ class CustomerController extends BaseController
     {
         $rules = Services::validation()->getRuleGroup('createCustomer');
         $rules['email'] = ['required', 'valid_email', "is_unique[customers.email,id,{$customerId}]"];
+        $rules['phone'] = ['required', 'string', "max_length[20]","is_unique[customers.phone,id,{$customerId}]"];
 
         if (!$this->validate($rules)) {
             return $this->failValidationErrors($this->validator->getErrors());
