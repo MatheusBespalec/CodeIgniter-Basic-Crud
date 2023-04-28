@@ -230,7 +230,7 @@ class CustomerController extends BaseController
 
         $model->delete($customerId);
 
-        if (!$model->find($customerId)) {
+        if ($model->find($customerId)) {
             return $this->failServerError("Customer deletion failed");
         }
 
