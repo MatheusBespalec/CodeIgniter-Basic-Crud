@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Adapters\PagerAdapter;
+use App\Entities\Customer;
 use App\Models\CustomerModel;
 use CodeIgniter\API\ResponseTrait;
 use Config\Services;
@@ -36,7 +37,7 @@ class CustomerController extends BaseController
 
     public function create()
     {
-        if (!$this->validate('customer')) {
+        if (!$this->validate('createCustomer')) {
             return $this->failValidationErrors($this->validator->getErrors());
         }
 
