@@ -12,6 +12,12 @@ paths:
       responses:
         '200':
           description: Success
+          content:
+            application/json:
+              schema:
+                properties:
+                  customers: { type: array, items: { $ref: '#/components/schemas/CustomerResource' } }
+                type: object
     post:
       tags:
         - Customers
@@ -25,10 +31,22 @@ paths:
       responses:
         '201':
           description: 'Customer Created'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResource'
         '400':
           description: 'Check the sended data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResource'
         '500':
           description: 'Customer creation failed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResource'
   '/customers/{customerId}':
     get:
       tags:
@@ -47,8 +65,16 @@ paths:
       responses:
         '200':
           description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResource'
         '404':
           description: 'Customer not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResource'
     put:
       tags:
         - Customers
@@ -71,10 +97,28 @@ paths:
       responses:
         '200':
           description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResource'
         '400':
           description: 'Check the sended data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResource'
+        '404':
+          description: 'Customer not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResource'
         '500':
           description: 'Customer update failed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResource'
     delete:
       tags:
         - Customers
@@ -94,10 +138,51 @@ paths:
           description: Success
         '404':
           description: 'Customer not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResource'
         '500':
           description: 'Customer deletion failed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResource'
 components:
   schemas:
+    Date:
+      properties:
+        date:
+          description: Timestamps
+          type: string
+          example: '2023-04-27 23:46:29.000000'
+        timezone_type:
+          description: 'Timezone type'
+          type: string
+          example: '3'
+        timezone:
+          description: Timezone
+          type: string
+          example: America/Sao_Paulo
+      type: object
+    ErrorResource:
+      properties:
+        status:
+          description: 'HTTP Status'
+          type: integer
+        code:
+          description: 'Error Code'
+          type: integer
+        message:
+          description: 'Error messages'
+          type: array
+          items:
+            properties:
+              field:
+                type: string
+                example: 'Error message'
+            type: object
+      type: object
     Customer:
       required:
         - name
@@ -118,4 +203,35 @@ components:
           type: string
           uniqueItems: true
           example: '5511954136548'
+      type: object
+    CustomerResource:
+      properties:
+        customer:
+          description: 'Customer Data'
+          properties:
+            id:
+              description: 'Customer ID'
+              type: integer
+              example: '1'
+            name:
+              description: 'Customer name'
+              type: string
+              example: 'John Doe'
+            email:
+              description: 'Customer email address'
+              type: string
+              example: johndoe@example.com
+            phone:
+              description: 'Customer phone number'
+              type: string
+              example: '5511954136548'
+            created_at:
+              $ref: '#/components/schemas/Date'
+            updated_at:
+              $ref: '#/components/schemas/Date'
+            deleted_at:
+              description: 'Date of deletion of customer'
+              type: object
+              example: null
+          type: object
       type: object

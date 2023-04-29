@@ -10,6 +10,50 @@ use Config\Services;
 /**
  * @OA\Info(title="Customer Operations", version="1.0.0")
  * @OA\Schema(
+ *     schema="Date",
+ *     type="object",
+ *     @OA\Property(
+ *          property="date",
+ *          type="string",
+ *          example="2023-04-27 23:46:29.000000",
+ *          description="Timestamps",
+ *     ),
+ *     @OA\Property(
+ *          property="timezone_type",
+ *          type="string",
+ *          example="3",
+ *          description="Timezone type",
+ *     ),
+ *     @OA\Property(
+ *          property="timezone",
+ *          type="string",
+ *          example="America/Sao_Paulo",
+ *          description="Timezone",
+ *     ),
+ * )
+ * @OA\Schema(
+ *     schema="ErrorResource",
+ *     type="object",
+ *     @OA\Property(
+ *          property="status",
+ *          type="integer",
+ *          description="HTTP Status",
+ *     ),
+ *     @OA\Property(
+ *          property="code",
+ *          type="integer",
+ *          description="Error Code",
+ *     ),
+ *     @OA\Property(
+ *          property="message",
+ *          type="array",
+ *          description="Error messages",
+ *          @OA\Items(
+ *              @OA\Property(property="field", type="string", example="Error message")
+ *          )
+ *     ),
+ * )
+ * @OA\Schema(
  *     schema="Customer",
  *     type="object",
  *     required={"name", "email", "phone"},
@@ -34,6 +78,57 @@ use Config\Services;
  *          description="Customer phone number",
  *     ),
  * )
+ * @OA\Schema(
+ *     schema="CustomerResource",
+ *     type="object",
+ *     @OA\Property(
+ *          property="customer",
+ *          type="object",
+ *          description="Customer Data",
+ *          @OA\Property(
+ *               property="id",
+ *               type="integer",
+ *               example="1",
+ *               description="Customer ID",
+ *          ),
+ *          @OA\Property(
+ *               property="name",
+ *               type="string",
+ *               example="John Doe",
+ *               description="Customer name",
+ *          ),
+ *          @OA\Property(
+ *               property="email",
+ *               type="string",
+ *               example="johndoe@example.com",
+ *               description="Customer email address",
+ *          ),
+ *          @OA\Property(
+ *               property="phone",
+ *               type="string",
+ *               example="5511954136548",
+ *               description="Customer phone number",
+ *          ),
+ *          @OA\Property(
+ *               property="created_at",
+ *               type="object",
+ *               ref="#/components/schemas/Date",
+ *               description="Date of creation of customer",
+ *          ),
+ *          @OA\Property(
+ *               property="updated_at",
+ *               type="object",
+ *               ref="#/components/schemas/Date",
+ *               description="Date of last edit of customer",
+ *          ),
+ *          @OA\Property(
+ *               property="deleted_at",
+ *               type="object",
+ *               example=null,
+ *               description="Date of deletion of customer",
+ *          ),
+ *     )
+ * )
  */
 class CustomerController extends BaseController
 {
@@ -46,7 +141,14 @@ class CustomerController extends BaseController
      *     tags={"Customers"},
      *     @OA\Response(
      *          response="200",
-     *          description="Success"
+     *          description="Success",
+     *          @OA\JsonContent(
+     *              @OA\Property (
+     *                  property="customers",
+     *                  type="array",
+     *                  @OA\Items(ref="#/components/schemas/CustomerResource")
+     *              )
+     *          )
      *     )
      * )
      */
@@ -77,10 +179,12 @@ class CustomerController extends BaseController
      *     @OA\Response(
      *         response="200",
      *         description="Success",
+     *         @OA\JsonContent(ref="#/components/schemas/CustomerResource")
      *     ),
      *     @OA\Response(
      *         response="404",
-     *         description="Customer not found"
+     *         description="Customer not found",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResource")
      *     )
      * )
      */
@@ -108,15 +212,18 @@ class CustomerController extends BaseController
      *      ),
      *      @OA\Response(
      *          response="201",
-     *          description="Customer Created"
+     *          description="Customer Created",
+     *          @OA\JsonContent(ref="#/components/schemas/CustomerResource")
      *      ),
      *      @OA\Response(
      *          response="400",
-     *          description="Check the sended data"
+     *          description="Check the sended data",
+     *          @OA\JsonContent(ref="#/components/schemas/ErrorResource")
      *      ),
      *      @OA\Response(
      *          response="500",
-     *          description="Customer creation failed"
+     *          description="Customer creation failed",
+     *          @OA\JsonContent(ref="#/components/schemas/ErrorResource")
      *      )
      * )
      */
@@ -158,15 +265,23 @@ class CustomerController extends BaseController
      *      ),
      *      @OA\Response(
      *          response="200",
-     *          description="Success"
+     *          description="Success",
+     *          @OA\JsonContent(ref="#/components/schemas/CustomerResource")
      *      ),
      *      @OA\Response(
      *          response="400",
-     *          description="Check the sended data"
+     *          description="Check the sended data",
+     *          @OA\JsonContent(ref="#/components/schemas/ErrorResource")
+     *      ),
+     *     @OA\Response(
+     *          response="404",
+     *          description="Customer not found",
+     *          @OA\JsonContent(ref="#/components/schemas/ErrorResource")
      *      ),
      *      @OA\Response(
      *          response="500",
-     *          description="Customer update failed"
+     *          description="Customer update failed",
+     *          @OA\JsonContent(ref="#/components/schemas/ErrorResource")
      *      )
      * )
      */
@@ -176,17 +291,20 @@ class CustomerController extends BaseController
         $rules['email'] = ['required', 'valid_email', "is_unique[customers.email,id,{$customerId}]"];
         $rules['phone'] = ['required', 'string', "max_length[20]","is_unique[customers.phone,id,{$customerId}]"];
 
-        if (!$this->validate($rules)) {
-            return $this->failValidationErrors($this->validator->getErrors());
-        }
-
         $model = model(CustomerModel::class);
 
-        if (!$model->update($customerId, $this->request->getJSON())) {
-            return $this->failServerError("Customer update failed");
+        $error = match (false) {
+            $model->find($customerId) => $this->failNotFound("Customer not found"),
+            $this->validate($rules) => $this->failValidationErrors($this->validator->getErrors()),
+            $model->update($customerId, $this->request->getJSON()) => $this->failServerError("Customer update failed"),
+            default => false
+        };
+
+        if ($error) {
+            return $error;
         }
 
-        return $this->respondCreated([
+        return $this->respond([
             'customer' => $model->find($customerId)
         ]);
     }
@@ -208,16 +326,18 @@ class CustomerController extends BaseController
      *      ),
      *      @OA\Response(
      *          response="204",
-     *          description="Success"
+     *          description="Success",
      *      ),
      *      @OA\Response(
      *          response="404",
-     *          description="Customer not found"
+     *          description="Customer not found",
+     *          @OA\JsonContent(ref="#/components/schemas/ErrorResource"),
      *      ),
      *      @OA\Response(
      *          response="500",
-     *          description="Customer deletion failed"
-     *      )
+     *          description="Customer deletion failed",
+     *          @OA\JsonContent(ref="#/components/schemas/ErrorResource"),
+     *      ),
      * )
      */
     public function delete(int $customerId)
