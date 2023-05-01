@@ -15,6 +15,27 @@ final class CustomerControllerTest extends \CodeIgniter\Test\CIUnitTestCase
 {
     use ControllerTestTrait;
 
+    public function invalidCustomerData(): array
+    {
+        return [
+            'name_is_null' => [
+                'name' => null,
+                'email' => 'jhondoe@gmail.com',
+                'phone' => '32929087824'
+            ],
+            'phone_is_null' => [
+                'name' => 'Jhon Doe',
+                'email' => 'jhondoe@gmail.com',
+                'phone' => null,
+            ],
+            'email_is_null' => [
+                'name' => 'Jhon Doe',
+                'emial' => null,
+                'phone' => '32929087824'
+            ],
+        ];
+    }
+
     public function testListReturnsListOfCustomers()
     {
         $fabricator = new Fabricator(CustomerModel::class, null, 'pt_BR');
@@ -43,7 +64,7 @@ final class CustomerControllerTest extends \CodeIgniter\Test\CIUnitTestCase
         self::assertNotEmpty($responseBody->customers, 'Para este teste a lista de clientes não deve estar vazia');
 
         foreach ($responseBody->customers as $customer) {
-            self::assetValidCustomerResource($customer);
+            self::assertValidCustomerResource($customer);
         }
     }
 
@@ -68,7 +89,7 @@ final class CustomerControllerTest extends \CodeIgniter\Test\CIUnitTestCase
             property_exists($responseBody, 'customer'),
             'Propriedade "customer" não esta sendo informada no retorno'
         );
-        self::assetValidCustomerResource($responseBody->customer);
+        self::assertValidCustomerResource($responseBody->customer);
     }
 
     public function testFindByIdResturnsFailNotFoundWhenCustomerNotExists()
@@ -98,42 +119,60 @@ final class CustomerControllerTest extends \CodeIgniter\Test\CIUnitTestCase
         );
     }
 
-    public static function assetValidCustomerResource($customer)
+    public static function assertValidCustomerResource($customer): void
     {
-        self::assertTrue(
-            property_exists($customer, 'id'),
-            'Propriedade "id" do cliente não esta sendo enviada'
-        );
-        self::assertIsInt($customer->id, 'Propriedade "id" está vindo com valor inválido');
+        self::assertIsInt($customer->id, 'Propriedade "id" possui um valor inválido');
+        self::assertNotEmpty($customer->name, 'Propriedade "name" retornou com valor vazia');
+        self::assertNotEmpty($customer->email, 'Propriedade "email" retornou com valor vazia');
+        self::assertNotEmpty($customer->phone, 'Propriedade "phone" retornou com valor vazia');
+        self::assertNotEmpty($customer->created_at, 'Propriedade "created_at" retornou com valor vazia');
+        self::assertNotEmpty($customer->updated_at, 'Propriedade "updated_at" retornou com valor vazia');
+    }
 
-        self::assertTrue(
-            property_exists($customer, 'name'),
-            'Propriedade "name" do cliente não esta sendo enviada'
-        );
-        self::assertNotEmpty($customer->name, 'Propriedade "name" está vindo vazia');
+    public function testCreateReturnsCustomerResource(): void
+    {
+        $fabricator = new Fabricator(CustomerModel::class, null, 'pt_BR');
+        $customerTobeSavedData = $fabricator->makeArray();
+        $customerModelMock = $this->createMock(CustomerModel::class);
+        $customerModelMock->method('insert')
+            ->withAnyParameters()
+            ->willReturn(rand());
+        $customerModelMock->method('find')
+            ->withAnyParameters()
+            ->willReturn($fabricator->create());
 
-        self::assertTrue(
-            property_exists($customer, 'email'),
-            'Propriedade "email" do cliente não esta sendo enviada'
-        );
-        self::assertNotEmpty($customer->email, 'Propriedade "email" está vindo vazia');
+        Factories::injectMock('models', CustomerModel::class, $customerModelMock);
 
-        self::assertTrue(
-            property_exists($customer, 'phone'),
-            'Propriedade "phone" do cliente não esta sendo enviada'
-        );
-        self::assertNotEmpty($customer->phone, 'Propriedade "phone" está vindo vazia');
+        $response = $this->withBody(json_encode($customerTobeSavedData))
+            ->controller(CustomerController::class)
+            ->execute('create')
+            ->response();
 
-        self::assertTrue(
-            property_exists($customer, 'created_at'),
-            'Propriedade "created_at" do cliente não esta sendo enviada'
-        );
-        self::assertNotEmpty($customer->created_at, 'Propriedade "created_at" está vindo vazia');
+        self::assertEquals(201, $response->getStatusCode(), 'Status HTTP diferente de "201 Created"');
 
-        self::assertTrue(
-            property_exists($customer, 'updated_at'),
-            'Propriedade "updated_at" do cliente não esta sendo enviada'
+        $responseBody = json_decode($response->getJSON());
+
+        self::assertIsObject(
+            $responseBody->customer,
+            'Propriedade "customer" não está vindo como um objeto contendo os dados do cliente'
         );
-        self::assertNotEmpty($customer->updated_at, 'Propriedade "updated_at" está vindo vazia');
+        self::assertValidCustomerResource($responseBody->customer);
+    }
+
+    /**
+     * @dataProvider invalidCustomerData
+     */
+    public function testCreateReturnsBadRequestWhenCustomerDataIsInvalid(?string $name, ?string $email, ?string $phone): void
+    {
+        $response = $this->controller(CustomerController::class)
+            ->withBody(json_encode([
+                'name' => $name,
+                'email' => $email,
+                'phone' => $phone,
+            ]))
+            ->execute('create')
+            ->response();
+
+        self::assertEquals(400, $response->getStatusCode(), 'Status HTTP diferente de "201 Created"');
     }
 }

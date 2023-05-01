@@ -229,12 +229,13 @@ class CustomerController extends BaseController
      */
     public function create()
     {
-        if (!$this->validate('createCustomer')) {
+        $jsonData = $this->request->getJSON(true);
+        if (!$this->validateData($jsonData, 'createCustomer')) {
             return $this->failValidationErrors($this->validator->getErrors());
         }
 
         $model = model(CustomerModel::class);
-        $customerId = $model->insert($this->request->getJSON());
+        $customerId = $model->insert($jsonData);
 
         if (!$customerId) {
             return $this->failServerError("Customer creation failed");

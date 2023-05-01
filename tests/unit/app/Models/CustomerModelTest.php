@@ -5,22 +5,12 @@ namespace App\Models;
 use CodeIgniter\Database\Exceptions\DatabaseException;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\DatabaseTestTrait;
-use CodeIgniter\Test\Fabricator;
-use PHPUnit\Framework\Attributes\DataProvider;
-
 final class CustomerModelTest extends CIUnitTestCase
 {
     use DatabaseTestTrait;
 
     protected $namespace = 'App';
     protected $refresh = true;
-    /*
-     * insert
-     * update
-     * delete
-     * find
-     * paginate
-     */
 
     public function validCustomerData(): array
     {
